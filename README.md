@@ -1,6 +1,5 @@
 # Content Provider with LiveData and ViewModel
 
-original repo: [absolute-z3ro/Contacts](https://github.com/absolute-z3ro/Contacts "absolute-z3ro/Contacts")
 
 Content provider implementation with livedata and viewmodel
 
@@ -61,3 +60,7 @@ class ContactsLiveData(
     }
 }
 ```
+
+
+## Credit
+original repo: [absolute-z3ro/Contacts](https://github.com/absolute-z3ro/Contacts "absolute-z3ro/Contacts")
