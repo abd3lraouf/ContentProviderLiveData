@@ -1,10 +1,9 @@
 package me.abdelraoufsabri.contacts
 
-import android.Manifest
+import android.Manifest.permission.READ_CONTACTS
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -13,21 +12,16 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.activity_main.*
 import me.abdelraoufsabri.contacts.data.ContactViewModel
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var contactAdapter: ContactAdapter
-    private lateinit var nothingToDisplay: TextView
-    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        recyclerView = findViewById(R.id.recyclerView)
-        nothingToDisplay = findViewById(R.id.text_no_result)
 
         if (!isPermissionGranted())
             showPermissionDialog()
@@ -38,10 +32,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         contactAdapter = ContactAdapter()
-        recyclerView.adapter = contactAdapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        val divider = DividerItemDecoration(recyclerView.context, DividerItemDecoration.VERTICAL)
-        recyclerView.addItemDecoration(divider)
+        with(rvContactList) {
+            adapter = contactAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            addItemDecoration(
+                DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            )
+        }
+
 
         setContacts()
     }
@@ -51,51 +49,38 @@ class MainActivity : AppCompatActivity() {
             .get(ContactViewModel::class.java)
             .contacts.observe(this, Observer { contacts ->
                 with(contacts) {
-                    nothingToDisplay.visibility = if (isNotEmpty()) View.GONE else View.VISIBLE
+                    tvNoContacts.visibility = if (isNotEmpty()) View.GONE else View.VISIBLE
                     contactAdapter.contacts = this
                 }
             })
     }
 
-    private fun isPermissionGranted(): Boolean = ContextCompat.checkSelfPermission(
-        this,
-        Manifest.permission.READ_CONTACTS
-    ) == PackageManager.PERMISSION_GRANTED
+    private fun isPermissionGranted(): Boolean =
+        ContextCompat.checkSelfPermission(this, READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
 
     private fun showPermissionDialog() {
-        val alertDialog = this.let {
-            val builder = AlertDialog.Builder(it)
-            builder.apply {
+        AlertDialog.Builder(this)
+            .apply {
                 setTitle("Contact Permission required!")
                 setMessage("Contact permission is required to show contacts.")
                 setPositiveButton(android.R.string.ok) { _, _ -> initiatePermission() }
                 setOnDismissListener { }
-            }
-            builder.create()
-        }
-        alertDialog.show()
+            }.create().show()
+
     }
 
     private fun permissionDeniedDialog() {
-        val alertDialog = this.let {
-            val builder = AlertDialog.Builder(it)
-            builder.apply {
+        AlertDialog.Builder(this)
+            .apply {
                 setTitle("Contact Permission required!")
                 setMessage("Cannot show contacts list without contacts read permission.")
                 setPositiveButton(android.R.string.ok) { _, _ -> }
                 setOnDismissListener { }
-            }
-            builder.create()
-        }
-        alertDialog.show()
+            }.create().show()
     }
 
     private fun initiatePermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.READ_CONTACTS),
-            PERMISSION_REQUEST_CODE
-        )
+        ActivityCompat.requestPermissions(this, arrayOf(READ_CONTACTS), PERMISSION_REQUEST_CODE)
     }
 
     override fun onRequestPermissionsResult(
